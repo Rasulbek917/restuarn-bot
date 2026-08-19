@@ -38,7 +38,13 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        # Brauzer Origin header'ida HECH QACHON oxirida "/" bo'lmaydi
+        # (masalan "https://foo.vercel.app", "https://foo.vercel.app/" emas).
+        # CORS_ORIGINS ichida trailing slash qolib ketsa, Starlette'ning aniq
+        # (exact-match) solishtiruvi mos kelmay qoladi va brauzer so'rovi
+        # "has been blocked by CORS policy" xatosi bilan bloklanadi — garchi
+        # to'g'ridan-to'g'ri (curl/Postman) so'rov 200 qaytarsa ham.
+        return [o.strip().rstrip("/") for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
 
 @lru_cache
